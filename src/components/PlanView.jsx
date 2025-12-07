@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Circle, PlayCircle, FileText, ChevronDown, ChevronRight, Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export default function PlanView({ plan, onToggleStep, collapsed = false, onExpand }) {
-  const [expandedDay, setExpandedDay] = useState('day-1');
+export default function PlanView({ plan, onToggleStep, collapsed = false, onExpand, readOnly = false }) {
+  // In read-only mode, expand all days by default for better review experience
+  const [expandedDay, setExpandedDay] = useState(readOnly ? plan?.days?.[0]?.id || 'day-1' : 'day-1');
+  
+  // Auto-expand first day in read-only mode for better review experience
+  useEffect(() => {
+    if (readOnly && plan?.days?.length > 0 && !expandedDay) {
+      setExpandedDay(plan.days[0].id);
+    }
+  }, [readOnly, plan, expandedDay]);
 
   if (!plan) return <div>No plan loaded</div>;
 
@@ -97,8 +105,12 @@ export default function PlanView({ plan, onToggleStep, collapsed = false, onExpa
 
                 <div className="ml-16">
                   <button 
-                    onClick={() => setExpandedDay(isExpanded ? null : day.id)}
-                    className="w-full flex items-center justify-between py-3 px-4 rounded-xl hover:bg-neutral-800/30 transition-all text-left group-hover:pl-5"
+                    onClick={() => !readOnly && setExpandedDay(isExpanded ? null : day.id)}
+                    disabled={readOnly}
+                    className={cn(
+                      "w-full flex items-center justify-between py-3 px-4 rounded-xl transition-all text-left",
+                      readOnly ? "cursor-default" : "hover:bg-neutral-800/30 group-hover:pl-5"
+                    )}
                   >
                     <div>
                         <h3 className={cn("font-semibold text-lg transition-colors", isComplete ? "text-neutral-400" : "text-white")}>
@@ -116,12 +128,14 @@ export default function PlanView({ plan, onToggleStep, collapsed = false, onExpa
                       {day.steps.map((step) => (
                         <div 
                           key={step.id} 
-                          onClick={() => onToggleStep(day.id, step.id)}
+                          onClick={() => !readOnly && onToggleStep && onToggleStep(day.id, step.id)}
                           className={cn(
-                            "flex items-center p-3 rounded-xl border transition-all cursor-pointer",
+                            "flex items-center p-3 rounded-xl border transition-all",
+                            readOnly ? "cursor-default" : "cursor-pointer",
                             step.completed 
                               ? "bg-green-900/10 border-green-500/10" 
-                              : "bg-neutral-800/20 border-transparent hover:bg-neutral-800/40"
+                              : "bg-neutral-800/20 border-transparent",
+                            !readOnly && !step.completed && "hover:bg-neutral-800/40"
                           )}
                         >
                           <div className={cn(

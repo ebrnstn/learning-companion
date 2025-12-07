@@ -89,3 +89,60 @@ export const generateLearningPlan = async (userProfile) => {
     throw error;
   }
 };
+
+export const reviseLearningPlan = async (plan, userProfile, feedback) => {
+  if (!model) {
+    throw new Error("Gemini API Key is missing.");
+  }
+
+  const prompt = `
+    You are an expert curriculum designer. Revise the following learning plan based on user feedback.
+    
+    Original plan:
+    ${JSON.stringify(plan, null, 2)}
+    
+    User profile:
+    - Topic: ${userProfile.topic}
+    - Level: ${userProfile.level}
+    - Time per day: ${userProfile.timeCommitment}
+    - Goal/Motivation: ${userProfile.motivation}
+    
+    User feedback: ${feedback}
+    
+    Revise the plan according to the feedback while maintaining the same JSON structure. Keep the same number of days (7 days) unless the feedback specifically requests a different duration. Ensure steps fit within the ${userProfile.timeCommitment} daily limit.
+    
+    Return ONLY raw JSON (no markdown formatting, no code blocks) with this exact structure:
+    {
+      "topic": "Topic Name",
+      "days": [
+        {
+          "id": "day-1",
+          "title": "Day 1: Focus Area",
+          "steps": [
+            { 
+               "id": "d1-s1", 
+               "title": "Step Title", 
+               "type": "video" | "article" | "quiz" | "exercise" | "project", 
+               "duration": "15m", 
+               "completed": false 
+            }
+          ]
+        }
+      ]
+    }
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Clean up markdown code blocks if present (Gemini sometimes adds them)
+    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Failed to revise plan:", error);
+    throw error;
+  }
+};
