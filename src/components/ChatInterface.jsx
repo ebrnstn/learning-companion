@@ -76,7 +76,7 @@ export default function ChatInterface({ plan }) {
                  <p>{msg.content}</p>
               ) : (
                 <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]}
+                  // remarkPlugins={[remarkGfm]}
                   className="prose prose-sm prose-invert max-w-none break-words"
                   components={{
                       a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline" />,

@@ -8,6 +8,10 @@ export default function Dashboard({ userProfile, plan: initialPlan }) {
   const [plan, setPlan] = useState(initialPlan);
   const [isPlanExpanded, setIsPlanExpanded] = useState(false);
 
+  React.useEffect(() => {
+    setPlan(initialPlan);
+  }, [initialPlan]);
+
   const handleToggleStep = (dayId, stepId) => {
     setPlan(prevPlan => ({
       ...prevPlan,

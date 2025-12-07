@@ -4,14 +4,32 @@ import { cn } from '../lib/utils';
 
 export default function PlanView({ plan, onToggleStep, collapsed = false, onExpand, readOnly = false }) {
   // In read-only mode, expand all days by default for better review experience
-  const [expandedDay, setExpandedDay] = useState(readOnly ? plan?.days?.[0]?.id || 'day-1' : 'day-1');
-  
-  // Auto-expand first day in read-only mode for better review experience
-  useEffect(() => {
-    if (readOnly && plan?.days?.length > 0 && !expandedDay) {
-      setExpandedDay(plan.days[0].id);
+  // Using a Set to track multiple expanded days
+  const [expandedDays, setExpandedDays] = useState(() => {
+    if (readOnly && plan?.days?.length > 0) {
+      return new Set([plan.days[0].id]);
     }
-  }, [readOnly, plan, expandedDay]);
+    return new Set(['day-1']);
+  });
+  
+  // Auto-expand first day in read-only mode for better review experience if nothing is expanded
+  useEffect(() => {
+    if (readOnly && plan?.days?.length > 0 && expandedDays.size === 0) {
+      setExpandedDays(new Set([plan.days[0].id]));
+    }
+  }, [readOnly, plan, expandedDays.size]);
+
+  const toggleDay = (dayId) => {
+    setExpandedDays(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(dayId)) {
+        newSet.delete(dayId);
+      } else {
+        newSet.add(dayId);
+      }
+      return newSet;
+    });
+  };
 
   if (!plan) return <div>No plan loaded</div>;
 
@@ -79,7 +97,7 @@ export default function PlanView({ plan, onToggleStep, collapsed = false, onExpa
       
       <div className="flex-1 overflow-y-auto px-6 md:px-8 pb-8 space-y-6">
         {plan.days.map((day, dayIndex) => {
-          const isExpanded = expandedDay === day.id;
+          const isExpanded = expandedDays.has(day.id);
           const completedSteps = day.steps.filter(s => s.completed).length;
           const totalSteps = day.steps.length;
           const isComplete = completedSteps === totalSteps;
@@ -105,11 +123,10 @@ export default function PlanView({ plan, onToggleStep, collapsed = false, onExpa
 
                 <div className="ml-16">
                   <button 
-                    onClick={() => !readOnly && setExpandedDay(isExpanded ? null : day.id)}
-                    disabled={readOnly}
+                    onClick={() => toggleDay(day.id)}
                     className={cn(
                       "w-full flex items-center justify-between py-3 px-4 rounded-xl transition-all text-left",
-                      readOnly ? "cursor-default" : "hover:bg-neutral-800/30 group-hover:pl-5"
+                      "hover:bg-neutral-800/30 group-hover:pl-5"
                     )}
                   >
                     <div>
