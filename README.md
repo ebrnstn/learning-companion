@@ -1,16 +1,52 @@
-# React + Vite
+# AI Learning Companion
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Your personalized AI tutor that creates, tracks, and adapts custom 7-day learning plans for any topic.
 
-Currently, two official plugins are available:
+![Learning Companion](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2667&auto=format&fit=crop)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Personalized Planning**: Generates comprehensive 7-day learning schedules based on your topic, time commitment, and experience level.
+- **Interactive Chat Companion**: Built-in AI tutor powered by Google Gemini to answer questions and explain concepts in real-time.
+- **Adaptive Revision**: Not happy with the plan? Request changes (e.g., "Make it harder", "Focus on videos") and watch it adapt instantly.
+- **Progress Tracking**: Track your completion of daily modules and steps.
+- **Smart UI**: Dark-mode focused, responsive design with multi-expandable modules for easy review.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React + Vite
+- **Styling**: Tailwind CSS
+- **AI**: Google Gemini API (`gemini-2.5-flash`)
+- **Icons**: Lucide React
+- **Markdown**: React Markdown
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+
+1.  **Clone the repository**
+    ```bash
+    git clone <repository-url>
+    cd learning-companion
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Environment Setup**
+    Create a `.env` file in the root directory and add your Google Gemini API key:
+    ```env
+    VITE_GEMINI_API_KEY=your_api_key_here
+    ```
+
+4.  **Run the application**
+    ```bash
+    npm run dev
+    ```
+
+## Usage
+
+1.  **Onboarding**: Enter your desired topic (e.g., "Python", "Knitting"), time availability, and current level.
+2.  **Review**: Check the generated plan. Expand days to see details.
+3.  **Revise**: If needed, ask for adjustments.
+4.  **Start Learning**: Click "Looks good!" to enter the dashboard and start tracking your progress.
