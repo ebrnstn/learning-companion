@@ -29,6 +29,7 @@ function App() {
   };
 
   const handleReviewConfirm = () => {
+    console.log("handleReviewConfirm called, setting view to dashboard");
     setView('dashboard');
   };
 

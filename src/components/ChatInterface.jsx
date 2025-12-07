@@ -75,19 +75,9 @@ export default function ChatInterface({ plan }) {
               {msg.role === 'user' ? (
                  <p>{msg.content}</p>
               ) : (
-                <ReactMarkdown 
-                  // remarkPlugins={[remarkGfm]}
-                  className="prose prose-sm prose-invert max-w-none break-words"
-                  components={{
-                      a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline" />,
-                      pre: ({node, ...props}) => <div className="not-prose my-2 bg-black/30 p-3 rounded-lg overflow-x-auto"><pre {...props} className="bg-transparent p-0 m-0" /></div>,
-                      code: ({node, inline, ...props}) => inline 
-                        ? <code {...props} className="bg-black/30 px-1.5 py-0.5 rounded font-mono text-xs" />
-                        : <code {...props} className="bg-transparent p-0 text-sm font-mono" />
-                  }}
-                >
+                <div className="prose prose-sm prose-invert max-w-none break-words whitespace-pre-wrap">
                   {msg.content}
-                </ReactMarkdown>
+                </div>
               )}
             </div>
           </div>
