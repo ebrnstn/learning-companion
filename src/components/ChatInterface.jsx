@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2, Home } from 'lucide-react';
+import { Send, Sparkles, Loader2, X, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/utils';
 import { sendMessageToGemini } from '../lib/gemini';
 
-export default function ChatInterface({ plan, onBackToHome }) {
+export default function ChatInterface({ plan, onClose }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: "Hi! I'm your learning companion. I can help answer questions about your plan or explain concepts. What are we working on?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -31,7 +32,7 @@ export default function ChatInterface({ plan, onBackToHome }) {
 
     try {
         const responseText = await sendMessageToGemini(messages, input, plan);
-        
+
         setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
     } catch (error) {
         console.error("Gemini Error:", error);
@@ -49,26 +50,44 @@ export default function ChatInterface({ plan, onBackToHome }) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950">
-      {/* Header with back navigation */}
-      {onBackToHome && (
-        <div className="flex-shrink-0 px-6 pt-6">
-          <button
-            onClick={onBackToHome}
-            className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors text-sm"
-          >
-            <Home className="h-4 w-4" />
-            <span>All Plans</span>
-          </button>
+    <div className="h-full flex flex-col bg-neutral-950 relative">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 border-b border-neutral-800 flex items-center justify-between">
+        <button
+          onClick={onClose}
+          className="text-neutral-400 hover:text-white transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="flex items-center space-x-2">
+          <Sparkles className="h-5 w-5 text-purple-500" />
+          <span className="font-semibold text-white">Companion</span>
+        </div>
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          className="text-neutral-400 hover:text-white transition-colors"
+        >
+          <Clock className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* History sidebar stub */}
+      {showHistory && (
+        <div className="absolute right-0 top-0 bottom-0 w-64 bg-neutral-900 border-l border-neutral-800 z-10">
+          <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
+            <span className="font-medium text-white">History</span>
+            <button
+              onClick={() => setShowHistory(false)}
+              className="text-neutral-400 hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-4 text-neutral-400 text-sm">
+            Chat history coming soon...
+          </div>
         </div>
       )}
-
-      <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            <span className="font-semibold text-white">Companion</span>
-        </div>
-      </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, index) => (
