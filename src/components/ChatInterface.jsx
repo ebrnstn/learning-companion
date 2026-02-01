@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, Home } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/utils';
 import { sendMessageToGemini } from '../lib/gemini';
 
-export default function ChatInterface({ plan }) {
+export default function ChatInterface({ plan, onBackToHome }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: "Hi! I'm your learning companion. I can help answer questions about your plan or explain concepts. What are we working on?" }
   ]);
@@ -49,7 +49,20 @@ export default function ChatInterface({ plan }) {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-neutral-950">
+      {/* Header with back navigation */}
+      {onBackToHome && (
+        <div className="flex-shrink-0 px-6 pt-6">
+          <button
+            onClick={onBackToHome}
+            className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors text-sm"
+          >
+            <Home className="h-4 w-4" />
+            <span>All Plans</span>
+          </button>
+        </div>
+      )}
+
       <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
