@@ -14,7 +14,6 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
   const [isChatClosing, setIsChatClosing] = useState(false);
   const [isChatOpening, setIsChatOpening] = useState(false);
   const [overlayActivity, setOverlayActivity] = useState(null); // { dayId, stepId }
-  const [currentActivityStepId, setCurrentActivityStepId] = useState(null); // For Activity tab
 
   React.useEffect(() => {
     if (isChatOpen && isChatOpening && !isChatClosing) {
@@ -49,17 +48,6 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
       day.steps.map(step => ({ ...step, dayId: day.id, dayTitle: day.title }))
     );
   }, [plan]);
-
-  // First incomplete step (for Activity tab default)
-  const firstIncompleteStep = useMemo(() => {
-    return allSteps.find(s => !s.completed) || allSteps[allSteps.length - 1] || null;
-  }, [allSteps]);
-
-  React.useEffect(() => {
-    if (activeTab === 'activity' && !currentActivityStepId && firstIncompleteStep) {
-      setCurrentActivityStepId(firstIncompleteStep.id);
-    }
-  }, [activeTab, currentActivityStepId, firstIncompleteStep]);
 
   // Get step context for navigation
   const getStepContext = (stepId) => {
@@ -109,25 +97,8 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
     }
   };
 
-  const handleActivityTabNavigate = (direction) => {
-    const stepId = currentActivityStepId || firstIncompleteStep?.id;
-    if (!stepId) return;
-
-    const ctx = getStepContext(stepId);
-    if (!ctx) return;
-
-    const targetStep = direction === 'next' ? ctx.nextStep : ctx.prevStep;
-    if (targetStep) {
-      setCurrentActivityStepId(targetStep.id);
-    }
-  };
-
   // Determine which step to show in overlay
   const overlayStepContext = overlayActivity ? getStepContext(overlayActivity.stepId) : null;
-
-  // Determine which step to show in Activity tab
-  const activityStepId = currentActivityStepId || firstIncompleteStep?.id;
-  const activityTabStepContext = activityStepId ? getStepContext(activityStepId) : null;
 
   return (
     <div className="h-screen w-screen bg-neutral-950 text-white flex flex-col overflow-hidden">
@@ -139,19 +110,6 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
             onToggleStep={handleToggleStep}
             onStepClick={handleStepClick}
             onBackToHome={onBackToHome}
-          />
-        )}
-        {activeTab === 'activity' && activityTabStepContext && (
-          <ActivityDetailView
-            step={activityTabStepContext.step}
-            dayTitle={activityTabStepContext.step.dayTitle}
-            topic={plan?.topic}
-            onClose={() => setActiveTab('plan')}
-            onToggleComplete={() => handleToggleStep(activityTabStepContext.step.dayId, activityTabStepContext.step.id)}
-            onNavigate={handleActivityTabNavigate}
-            hasPrev={activityTabStepContext.hasPrev}
-            hasNext={activityTabStepContext.hasNext}
-            isOverlay={false}
           />
         )}
         {activeTab === 'log' && (
