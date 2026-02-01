@@ -234,7 +234,7 @@ export const generateLearningPathways = async (userProfile) => {
 };
 
 export const searchStepResources = async (stepTitle, stepType, planTopic) => {
-  if (!model) {
+  if (!ai) {
     throw new Error("Gemini API Key is missing.");
   }
 
@@ -255,12 +255,75 @@ export const searchStepResources = async (stepTitle, stepType, planTopic) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: { tools: [googleSearchTool] },
+    });
+    const text = response.text;
     const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
     return JSON.parse(jsonString);
   } catch (error) {
     console.error("Failed to search step resources:", error);
+    throw error;
+  }
+};
+
+export const generateStepLearningContent = async (step, planTopic, dayTitle) => {
+  if (!ai) {
+    throw new Error("Gemini API Key is missing.");
+  }
+
+  const prompt = `
+    You are an expert learning coach. Generate helpful learning content for this specific step in a learning plan.
+
+    Context:
+    - Overall Topic: ${planTopic}
+    - Day: ${dayTitle}
+    - Step Title: ${step.title}
+    - Step Type: ${step.type}
+    - Duration: ${step.duration}
+
+    Generate educational content to help the learner get the most out of this step.
+
+    Return ONLY raw JSON (no markdown formatting, no code blocks) with this exact structure:
+    {
+      "keyConcepts": [
+        { "concept": "Concept name", "explanation": "Brief explanation (1-2 sentences)" }
+      ],
+      "vocabulary": [
+        { "term": "Technical term", "definition": "Clear definition" }
+      ],
+      "practiceQuestions": [
+        { "question": "Reflection or practice question?" }
+      ],
+      "learningTips": [
+        { "tip": "Practical advice for this step" }
+      ],
+      "connectionToNext": "How this prepares for the next step (1 sentence)"
+    }
+
+    Guidelines:
+    - keyConcepts: 3-5 core ideas the learner should understand
+    - vocabulary: 2-4 key terms with clear definitions
+    - practiceQuestions: 2-3 thought-provoking questions to reinforce learning
+    - learningTips: 2-3 practical tips specific to this step type (${step.type})
+    - connectionToNext: Brief sentence on how this builds toward future learning
+
+    Make content specific to "${step.title}" and appropriate for someone learning ${planTopic}.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const text = response.text;
+    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Failed to generate learning content:", error);
     throw error;
   }
 };
