@@ -233,6 +233,38 @@ export const generateLearningPathways = async (userProfile) => {
   }
 };
 
+export const searchStepResources = async (stepTitle, stepType, planTopic) => {
+  if (!model) {
+    throw new Error("Gemini API Key is missing.");
+  }
+
+  const prompt = `
+    Find 3-5 high-quality, free learning resources for this specific learning step:
+
+    Overall Topic: ${planTopic}
+    Step: ${stepTitle}
+    Preferred Type: ${stepType} (video, article, exercise, etc.)
+
+    Use Google Search to find real, accessible resources.
+    Prioritize: YouTube videos, official documentation, reputable tutorials.
+
+    Return ONLY raw JSON (no markdown):
+    [
+      { "title": "Resource Title", "url": "https://...", "description": "Brief description" }
+    ]
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Failed to search step resources:", error);
+    throw error;
+  }
+};
+
 export const reviseLearningPlan = async (plan, userProfile, feedback) => {
   if (!ai) {
     throw new Error("Gemini API Key is missing.");
