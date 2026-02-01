@@ -5,13 +5,38 @@ import LogView from './LogView';
 import ChatInterface from './ChatInterface';
 import TabBar from './TabBar';
 import ActivityDetailView from './ActivityDetailView';
+import { cn } from '../lib/utils';
 
 export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate, onBackToHome }) {
   const [plan, setPlan] = useState(initialPlan);
   const [activeTab, setActiveTab] = useState('plan');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatClosing, setIsChatClosing] = useState(false);
+  const [isChatOpening, setIsChatOpening] = useState(false);
   const [overlayActivity, setOverlayActivity] = useState(null); // { dayId, stepId }
-  const [currentActivityStepId, setCurrentActivityStepId] = useState(null); // For Activity tab navigation
+  const [currentActivityStepId, setCurrentActivityStepId] = useState(null); // For Activity tab
+
+  React.useEffect(() => {
+    if (isChatOpen && isChatOpening && !isChatClosing) {
+      const t = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsChatOpening(false));
+      });
+      return () => cancelAnimationFrame(t);
+    }
+  }, [isChatOpen, isChatOpening, isChatClosing]);
+
+  const openChat = () => {
+    setIsChatOpen(true);
+    setIsChatOpening(true);
+  };
+
+  const closeChat = () => {
+    setIsChatClosing(true);
+    setTimeout(() => {
+      setIsChatOpen(false);
+      setIsChatClosing(false);
+    }, 280);
+  };
 
   React.useEffect(() => {
     setPlan(initialPlan);
@@ -30,7 +55,6 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
     return allSteps.find(s => !s.completed) || allSteps[allSteps.length - 1] || null;
   }, [allSteps]);
 
-  // Reset currentActivityStepId when switching to Activity tab or when it becomes invalid
   React.useEffect(() => {
     if (activeTab === 'activity' && !currentActivityStepId && firstIncompleteStep) {
       setCurrentActivityStepId(firstIncompleteStep.id);
@@ -140,8 +164,8 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
 
       {/* FAB - positioned above tab bar */}
       <button
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center z-40 hover:bg-blue-500 transition-colors"
+        onClick={openChat}
+        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-blue-500 transition-colors"
       >
         <MessageSquare className="h-6 w-6 text-white" />
       </button>
@@ -161,14 +185,23 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
         />
       )}
 
-      {/* Full-screen chat overlay */}
+      {/* Chat panel: slides in from left (standard LLM app pattern) */}
       {isChatOpen && (
-        <div className="fixed inset-0 z-50 bg-neutral-950">
-          <ChatInterface
-            plan={plan}
-            onClose={() => setIsChatOpen(false)}
+        <>
+          <button
+            aria-label="Close chat"
+            onClick={closeChat}
+            className="fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300"
           />
-        </div>
+          <div
+            className={cn(
+              'fixed inset-y-0 left-0 z-[60] w-full max-w-md bg-neutral-950 shadow-xl flex flex-col transition-transform duration-300 ease-out',
+              isChatClosing ? '-translate-x-full' : isChatOpening ? '-translate-x-full' : 'translate-x-0'
+            )}
+          >
+            <ChatInterface plan={plan} onClose={closeChat} />
+          </div>
+        </>
       )}
     </div>
   );

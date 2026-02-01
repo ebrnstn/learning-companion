@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2, X, Clock } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { Send, Sparkles, Loader2, X, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { sendMessageToGemini } from '../lib/gemini';
 
@@ -50,45 +48,54 @@ export default function ChatInterface({ plan, onClose }) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950 relative">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-neutral-800 flex items-center justify-between">
+    <div className="h-full flex flex-col bg-neutral-950">
+      {/* Header: history toggle top-left, title center, close right */}
+      <div className="flex-shrink-0 px-4 py-3 border-b border-neutral-800 flex items-center gap-2">
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          className={cn(
+            'p-2 -ml-2 rounded-lg transition-colors flex-shrink-0',
+            showHistory ? 'text-blue-400 bg-blue-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          )}
+          aria-label={showHistory ? 'Hide history' : 'Show history'}
+        >
+          <MessageSquare className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2 min-w-0 flex-1 justify-center">
+          <Sparkles className="h-5 w-5 text-purple-500 flex-shrink-0" />
+          <span className="font-semibold text-white truncate">Companion</span>
+        </div>
         <button
           onClick={onClose}
-          className="text-neutral-400 hover:text-white transition-colors"
+          className="p-2 -mr-2 rounded-lg text-neutral-400 hover:text-white transition-colors hover:bg-neutral-800 flex-shrink-0"
+          aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
-        <div className="flex items-center space-x-2">
-          <Sparkles className="h-5 w-5 text-purple-500" />
-          <span className="font-semibold text-white">Companion</span>
-        </div>
-        <button
-          onClick={() => setShowHistory(!showHistory)}
-          className="text-neutral-400 hover:text-white transition-colors"
-        >
-          <Clock className="h-5 w-5" />
-        </button>
       </div>
 
-      {/* History sidebar stub */}
-      {showHistory && (
-        <div className="absolute right-0 top-0 bottom-0 w-64 bg-neutral-900 border-l border-neutral-800 z-10">
-          <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
-            <span className="font-medium text-white">History</span>
-            <button
-              onClick={() => setShowHistory(false)}
-              className="text-neutral-400 hover:text-white transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="p-4 text-neutral-400 text-sm">
-            Chat history coming soon...
-          </div>
-        </div>
-      )}
+      <div className="flex-1 flex min-h-0">
+        {/* History sidebar (left, standard LLM pattern) */}
+        {showHistory && (
+          <aside className="flex-shrink-0 w-56 border-r border-neutral-800 bg-neutral-900/50 flex flex-col">
+            <div className="p-3 border-b border-neutral-800">
+              <button
+                onClick={() => setShowHistory(false)}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+                Close
+              </button>
+            </div>
+            <div className="p-3 flex-1 overflow-y-auto">
+              <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium mb-2">Conversations</p>
+              <p className="text-sm text-neutral-500">Previous chats will appear here.</p>
+            </div>
+          </aside>
+        )}
 
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col min-w-0">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, index) => (
           <div 
@@ -142,6 +149,8 @@ export default function ChatInterface({ plan, onClose }) {
           >
             <Send className="h-4 w-4 text-white" />
           </button>
+        </div>
+      </div>
         </div>
       </div>
     </div>
