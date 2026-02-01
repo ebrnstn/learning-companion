@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, PlayCircle, FileText, ChevronDown, ChevronRight, Check, Home } from 'lucide-react';
+import { CheckCircle2, Circle, PlayCircle, FileText, ChevronDown, ChevronRight, Check, Home, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { searchStepResources } from '../lib/gemini';
 
 // Generate placeholder content for steps that don't have detailed info
 const getPlaceholderContent = (step) => ({
@@ -21,6 +22,12 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
   // Track expanded steps
   const [expandedSteps, setExpandedSteps] = useState(new Set());
 
+  // Cache searched resources by step ID
+  const [stepResources, setStepResources] = useState({});
+
+  // Track steps currently loading resources
+  const [loadingSteps, setLoadingSteps] = useState(new Set());
+
   // Auto-expand first day in read-only mode
   useEffect(() => {
     if (readOnly && plan?.days?.length > 0 && expandedDays.size === 0) {
@@ -40,7 +47,10 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
     });
   };
 
-  const toggleStep = (stepId) => {
+  const toggleStep = async (stepId, step) => {
+    const isCurrentlyExpanded = expandedSteps.has(stepId);
+
+    // Toggle expansion state
     setExpandedSteps(prev => {
       const newSet = new Set(prev);
       if (newSet.has(stepId)) {
@@ -50,6 +60,24 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
       }
       return newSet;
     });
+
+    // If expanding and no cached resources, trigger search
+    if (!isCurrentlyExpanded && !stepResources[stepId] && !loadingSteps.has(stepId)) {
+      setLoadingSteps(prev => new Set(prev).add(stepId));
+      try {
+        const resources = await searchStepResources(step.title, step.type, plan.topic);
+        setStepResources(prev => ({ ...prev, [stepId]: resources }));
+      } catch (error) {
+        console.error("Failed to fetch resources for step:", error);
+        setStepResources(prev => ({ ...prev, [stepId]: [] }));
+      } finally {
+        setLoadingSteps(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(stepId);
+          return newSet;
+        });
+      }
+    }
   };
 
   const handleCheckboxClick = (e, dayId, stepId) => {
@@ -159,7 +187,7 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
                         return (
                           <div key={step.id} className="overflow-hidden">
                             <div
-                              onClick={() => toggleStep(step.id)}
+                              onClick={() => toggleStep(step.id, step)}
                               className={cn(
                                 "flex items-center p-3 rounded-xl border transition-all cursor-pointer",
                                 step.completed
@@ -201,16 +229,45 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
 
                             {/* Expanded step content */}
                             {isStepExpanded && (
-                              <div className="mt-2 ml-8 pl-4 border-l-2 border-neutral-800 space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                              <div className="mt-2 ml-8 pl-4 border-l-2 border-neutral-800 space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
                                 <p className="text-sm text-neutral-400">{description}</p>
                                 <div className="text-xs text-neutral-500">
                                   <span className="font-medium text-neutral-400">Objectives:</span> {objectives}
                                 </div>
-                                {resources && (
-                                  <div className="text-xs text-blue-400">
-                                    <span className="font-medium">Resources:</span> {resources}
-                                  </div>
-                                )}
+
+                                {/* Dynamic Resources Section */}
+                                <div className="pt-2">
+                                  <span className="font-medium text-neutral-400 text-xs">Resources:</span>
+                                  {loadingSteps.has(step.id) ? (
+                                    <div className="flex items-center gap-2 mt-2 text-neutral-500 text-sm">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <span>Searching for resources...</span>
+                                    </div>
+                                  ) : stepResources[step.id] && stepResources[step.id].length > 0 ? (
+                                    <div className="mt-2 space-y-2">
+                                      {stepResources[step.id].map((resource, i) => (
+                                        <a
+                                          key={i}
+                                          href={resource.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-start gap-2 text-sm text-blue-400 hover:text-blue-300 hover:underline group"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <ExternalLink className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                                          <div>
+                                            <span className="block">{resource.title}</span>
+                                            {resource.description && (
+                                              <span className="block text-xs text-neutral-500 mt-0.5">{resource.description}</span>
+                                            )}
+                                          </div>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  ) : stepResources[step.id] ? (
+                                    <div className="mt-2 text-neutral-500 text-sm">No resources found.</div>
+                                  ) : null}
+                                </div>
                               </div>
                             )}
                           </div>
