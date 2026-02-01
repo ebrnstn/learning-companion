@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import PlanView from './PlanView';
+import LogView from './LogView';
 import ChatInterface from './ChatInterface';
 import TabBar from './TabBar';
 
 export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate, onBackToHome }) {
   const [plan, setPlan] = useState(initialPlan);
+  const [activeTab, setActiveTab] = useState('plan');
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   React.useEffect(() => {
@@ -36,15 +38,20 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
     <div className="h-screen w-screen bg-neutral-950 text-white flex flex-col overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
-        <PlanView
-          plan={plan}
-          onToggleStep={handleToggleStep}
-          onBackToHome={onBackToHome}
-        />
+        {activeTab === 'plan' && (
+          <PlanView
+            plan={plan}
+            onToggleStep={handleToggleStep}
+            onBackToHome={onBackToHome}
+          />
+        )}
+        {activeTab === 'log' && (
+          <LogView onBackToHome={onBackToHome} />
+        )}
       </div>
 
       {/* Bottom Tab Bar */}
-      <TabBar />
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* FAB - positioned above tab bar */}
       <button
