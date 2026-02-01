@@ -7,7 +7,19 @@ let model = null;
 
 if (API_KEY) {
   genAI = new GoogleGenerativeAI(API_KEY);
-  model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash",
+    tools: [
+      {
+        googleSearchRetrieval: {
+          dynamicRetrievalConfig: {
+            mode: "dynamic",
+            dynamicThreshold: 0.7,
+          },
+        },
+      },
+    ],
+  });
 }
 
 export const sendMessageToGemini = async (history, message, planContext = null) => {
@@ -71,6 +83,12 @@ export const generateLearningPlan = async (userProfile, selectedPathways = []) =
     
     ${pathwayContext}
 
+    **CRITICAL INSTRUCTION: FIND REAL RESOURCES**
+    Use Google Search to find high-quality, free, and accessible learning resources for each step. 
+    - For "video" steps, find actual YouTube videos or free course videos.
+    - For "article" steps, find reputable tutorials, documentation, or blog posts.
+    - For "project" steps, find specific project ideas or tutorials.
+    
     Return ONLY raw JSON (no markdown formatting, no code blocks) with this exact structure:
     {
       "topic": "Topic Name",
@@ -84,6 +102,7 @@ export const generateLearningPlan = async (userProfile, selectedPathways = []) =
                "title": "Step Title", 
                "type": "video" | "article" | "quiz" | "exercise" | "project", 
                "duration": "15m", 
+               "url": "https://actual-url-found-via-search.com",
                "completed": false 
             }
           ]
@@ -94,6 +113,7 @@ export const generateLearningPlan = async (userProfile, selectedPathways = []) =
     Make it engaging and practical. 
     Ensure there are 7 days. 
     Ensure steps fit within the ${userProfile.timeCommitment} daily limit.
+    Double check that all URLs are real and relevant found from your search.
   `;
 
   try {
@@ -180,6 +200,7 @@ export const reviseLearningPlan = async (plan, userProfile, feedback) => {
                "title": "Step Title", 
                "type": "video" | "article" | "quiz" | "exercise" | "project", 
                "duration": "15m", 
+               "url": "https://actual-url-found-via-search.com",
                "completed": false 
             }
           ]
