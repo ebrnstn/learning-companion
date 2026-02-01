@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutList, FileText } from 'lucide-react';
+import { LayoutList, FileText, PlayCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function TabBar({ activeTab = 'plan', onTabChange }) {
@@ -15,6 +15,16 @@ export default function TabBar({ activeTab = 'plan', onTabChange }) {
         >
           <LayoutList className="h-5 w-5" />
           <span className="text-xs mt-1 font-medium">Plan</span>
+        </button>
+        <button
+          onClick={() => onTabChange?.('activity')}
+          className={cn(
+            'flex-1 flex flex-col items-center py-3 transition-colors',
+            activeTab === 'activity' ? 'text-blue-400' : 'text-neutral-500 hover:text-neutral-300'
+          )}
+        >
+          <PlayCircle className="h-5 w-5" />
+          <span className="text-xs mt-1 font-medium">Activity</span>
         </button>
         <button
           onClick={() => onTabChange?.('log')}

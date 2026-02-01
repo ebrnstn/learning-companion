@@ -9,7 +9,7 @@ const getPlaceholderContent = (step) => ({
   resources: step.type === 'video' ? 'Video tutorial' : 'Reading material'
 });
 
-export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = false }) {
+export default function PlanView({ plan, onToggleStep, onStepClick, onBackToHome, readOnly = false }) {
   // Track expanded days
   const [expandedDays, setExpandedDays] = useState(() => {
     if (readOnly && plan?.days?.length > 0) {
@@ -159,7 +159,7 @@ export default function PlanView({ plan, onToggleStep, onBackToHome, readOnly = 
                         return (
                           <div key={step.id} className="overflow-hidden">
                             <div
-                              onClick={() => toggleStep(step.id)}
+                              onClick={() => onStepClick ? onStepClick(day.id, step.id) : toggleStep(step.id)}
                               className={cn(
                                 "flex items-center p-3 rounded-xl border transition-all cursor-pointer",
                                 step.completed
