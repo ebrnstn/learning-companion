@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, ArrowLeft, ArrowRight, PlayCircle, FileText, BookOpen, Code, CheckCircle, ExternalLink, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ArrowLeft, ArrowRight, PlayCircle, FileText, BookOpen, Code, CheckCircle, ExternalLink, Check, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { searchStepResources } from '../lib/gemini';
 
 const typeConfig = {
   video: { icon: PlayCircle, label: 'VIDEO', color: 'text-blue-400', bg: 'bg-blue-500/10' },
@@ -13,6 +14,7 @@ const typeConfig = {
 export default function ActivityDetailView({
   step,
   dayTitle,
+  topic,
   onClose,
   onToggleComplete,
   onNavigate,
@@ -20,6 +22,38 @@ export default function ActivityDetailView({
   hasNext,
   isOverlay = false,
 }) {
+  const [extraResources, setExtraResources] = useState([]);
+  const [loadingResources, setLoadingResources] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadResources() {
+      if (!step || !topic) return;
+      
+      // Reset
+      setExtraResources([]);
+      setLoadingResources(true);
+
+      try {
+        const results = await searchStepResources(step.title, step.type, topic);
+        if (active) {
+          setExtraResources(results);
+        }
+      } catch (error) {
+        console.error("Failed to load resources", error);
+      } finally {
+        if (active) {
+          setLoadingResources(false);
+        }
+      }
+    }
+
+    loadResources();
+
+    return () => { active = false; };
+  }, [step, topic]);
+
   if (!step) return null;
 
   const config = typeConfig[step.type] || typeConfig.article;
@@ -127,12 +161,43 @@ export default function ActivityDetailView({
         )}
 
         {/* Resources */}
-        {step.resources && (
-          <div>
-            <h3 className="text-sm font-medium text-neutral-300 mb-2">Resources</h3>
-            <p className="text-sm text-blue-400">{step.resources}</p>
-          </div>
-        )}
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-neutral-300 mb-2">Resources</h3>
+          {step.resources && (
+             <p className="text-sm text-neutral-400 mb-3">{step.resources}</p>
+          )}
+
+          {/* Dynamic Resources */}
+          {loadingResources ? (
+            <div className="flex items-center gap-2 text-neutral-500 text-sm py-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Searching for helpful resources...</span>
+            </div>
+          ) : extraResources.length > 0 ? (
+            <div className="space-y-2 mt-2">
+              {extraResources.map((resource, i) => (
+                <a
+                  key={i}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 p-3 bg-neutral-900/50 rounded-lg hover:bg-neutral-800 transition-colors group border border-transparent hover:border-neutral-700"
+                >
+                  <ExternalLink className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="block text-sm text-blue-400 group-hover:underline font-medium">{resource.title}</span>
+                    {resource.description && (
+                      <span className="block text-xs text-neutral-500 mt-1 line-clamp-2">{resource.description}</span>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            // Only show "No additional resources" if we tried searching (topic exists) and found nothing
+            topic && <p className="text-xs text-neutral-600 italic">No additional resources found.</p>
+          )}
+        </div>
       </div>
 
       {/* Actions footer */}

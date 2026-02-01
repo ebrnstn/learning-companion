@@ -121,6 +121,7 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
           <ActivityDetailView
             step={activityTabStepContext.step}
             dayTitle={activityTabStepContext.step.dayTitle}
+            topic={plan?.topic}
             onClose={() => setActiveTab('plan')}
             onToggleComplete={() => handleToggleStep(activityTabStepContext.step.dayId, activityTabStepContext.step.id)}
             onNavigate={handleActivityTabNavigate}
@@ -150,6 +151,7 @@ export default function Dashboard({ userProfile, plan: initialPlan, onPlanUpdate
         <ActivityDetailView
           step={overlayStepContext.step}
           dayTitle={overlayStepContext.step.dayTitle}
+          topic={plan?.topic}
           onClose={() => setOverlayActivity(null)}
           onToggleComplete={() => handleToggleStep(overlayStepContext.step.dayId, overlayStepContext.step.id)}
           onNavigate={handleOverlayNavigate}
