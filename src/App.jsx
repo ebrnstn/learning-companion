@@ -130,9 +130,13 @@ function App() {
     }
   };
 
-  // Show nothing until initialized
+  // Show loading until initialized
   if (view === null) {
-    return null;
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="animate-pulse text-neutral-500">Loading…</div>
+      </div>
+    );
   }
 
   if (view === 'home') {
